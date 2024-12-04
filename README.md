@@ -40,3 +40,11 @@ curl "http://127.0.0.1:2211/api/v1/get_coin?token=APAkdwfAyqFsQuD92hURMnfUE2dKkj
 curl "http://127.0.0.1:2211/api/v1/get_coin?token=APAkdwfAyqFsQuD92hURMnfUE2dKkjaZjbttx3oZfn1y"
 {"msg":"ok","data":null}
 ```
+
+## 配置文件
+```toml
+database_url="sqlite://./data/db.sqlite3"
+host_uri="127.0.0.1:2211" # 本地web服务的地址
+solana_rpc_url="https://api.mainnet-beta.solana.com" # solana rpc地址, 最好替换为自己的如 helius.dev
+solana_rpc_curl_interval=10 # 同步关注账户的持仓信息的时间间隔, 单位秒
+```
