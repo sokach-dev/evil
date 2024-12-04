@@ -126,6 +126,16 @@ impl ModelsManager {
         Ok(())
     }
 
+    pub async fn del_coin_with_account(&self, account: &str) -> Result<()> {
+        let sql_str = format!(
+            "DELETE FROM coins WHERE account = '{}' AND DELETED = 0;",
+            account
+        );
+        sqlx::query(&sql_str).execute(&self.pool).await?;
+
+        Ok(())
+    }
+
     pub async fn get_coin_with_token(&self, token: String) -> Result<Option<Coin>> {
         let sql_str = format!(
             "SELECT * FROM coins WHERE token = '{}' AND DELETED = 0;",

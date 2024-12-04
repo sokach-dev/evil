@@ -20,6 +20,18 @@ pub async fn daemon() {
                 for account in accounts {
                     match get_tokens_with_account(&account.account, &c.solana_rpc_url).await {
                         Ok(tokens) => {
+                            if tokens.len() > 0 {
+                                // del old coins
+                                if let Err(e) =
+                                    manager.del_coin_with_account(&account.account).await
+                                {
+                                    error!(
+                                        "del old coins error: {:?}, account: {}",
+                                        e, &account.account
+                                    );
+                                    continue;
+                                }
+                            }
                             for token in &tokens {
                                 if let Err(e) =
                                     manager.add_new_coin(&account.account, &token.mint).await

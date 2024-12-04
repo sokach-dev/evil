@@ -3,14 +3,15 @@ use serde::{Deserialize, Serialize};
 use solana_account_decoder::UiAccountData;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::pubkey::Pubkey;
+use tracing::debug;
 
 pub type TokenAccounts = Vec<TokenAccount>;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TokenAccount {
     pub pubkey: String,
     pub mint: String,
-    pub amount: String,
-    pub ui_amount: f64,
+    pub amount: String, // 区块链计数123123
+    pub ui_amount: f64, // 就是我们看到的数量123.123
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -55,6 +56,10 @@ pub async fn get_tokens_with_account(account: &str, rpc_url: &str) -> Result<Vec
         match account_data {
             UiAccountData::Json(parsed_account) => {
                 let parsed: Parsed = serde_json::from_value(parsed_account.parsed)?;
+                if parsed.info.token_amount.ui_amount < 100000.0 {
+                    debug!("skip token account: {:?}", parsed);
+                    continue;
+                }
                 accounts.push(TokenAccount {
                     pubkey: token_account.pubkey.to_string(),
                     mint: parsed.info.mint,
