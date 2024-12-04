@@ -102,9 +102,6 @@ struct TokenQuery {
 }
 
 async fn get_coin(Query(query): Query<TokenQuery>) -> impl IntoResponse {
-    if query.token.len() != 44 {
-        return CustomResponse::err("token length is not 44".to_string()).to_json();
-    }
     let manager = get_global_manager().await.clone();
 
     match manager.get_coin_with_token(query.token).await {
@@ -119,9 +116,6 @@ struct AddressQuery {
 }
 
 async fn get_account(Query(query): Query<AddressQuery>) -> impl IntoResponse {
-    if query.address.len() != 44 {
-        return CustomResponse::err("address length is not 44".to_string()).to_json();
-    }
     let manager = get_global_manager().await.clone();
 
     match manager.get_account_with_mint(query.address).await {
