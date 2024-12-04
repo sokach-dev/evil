@@ -1,7 +1,6 @@
-
 use std::env;
 
-use angel::config;
+use angel::{config, daemon};
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use tokio::fs;
@@ -40,19 +39,15 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Some(Commands::Daemon) => {
-            todo!()
+            daemon::daemon().await;
         }
         Some(Commands::Web) => {
-            todo!()
+            angel::web::start_server().await?;
         }
         None => {
             println!("Please specify a subcommand");
         }
     }
-
-
-
-
 
     Ok(())
 }

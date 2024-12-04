@@ -7,8 +7,12 @@ use validator::Validate;
 pub struct Config {
     #[validate(length(min = 1))]
     pub database_url: String, // database url
-    #[validate(range(min = 100))]
-    pub url_port: u16, // web服务端口
+    #[validate(length(min = 1))]
+    pub host_uri: String, // web服务端口 0.0.0.0:8080
+    #[validate(length(min = 1))]
+    pub solana_rpc_url: String, // solana rpc url
+    #[validate(range(min = 1))]
+    pub solana_rpc_curl_interval: u64, // solana rpc curl interval, eg 60 -> 60s
 }
 
 impl FromStr for Config {

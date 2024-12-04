@@ -1,0 +1,4 @@
+database_url="sqlite://./data/db.sqlite3"
+host_uri="127.0.0.1:2211" # web server port
+solana_rpc_url="https://api.mainnet-beta.solana.com"
+solana_rpc_curl_interval=10
