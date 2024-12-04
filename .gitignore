@@ -1,0 +1,4 @@
+/target
+app.toml
+.env
+data
