@@ -13,7 +13,7 @@ use axum::{
 use futures::{SinkExt, StreamExt};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
-use std::{intrinsics::simd::simd_reduce_all, time::Duration};
+use std::time::Duration;
 use tokio::{net::TcpListener, signal, sync::broadcast};
 use tokio_tungstenite::connect_async;
 use tower::{BoxError, ServiceBuilder};
@@ -52,6 +52,7 @@ pub async fn start_server() -> Result<()> {
     let app = Router::new()
         .route("/api/v1/add_account", get(add_account))
         .route("/api/v1/get_coin", get(get_coin))
+        .route("/api/v1/check_coin", get(check_coin))
         .route("/api/v1/get_account", get(get_account))
         .route("/api/v1/get_accounts", get(get_accounts))
         .route(
@@ -110,26 +111,42 @@ async fn add_account(input: Query<AddAccount>) -> impl IntoResponse {
 #[derive(Deserialize)]
 struct TokenQuery {
     token: String,
-    use_gmgn_check: bool,
 }
 
 async fn get_coin(Query(query): Query<TokenQuery>) -> impl IntoResponse {
     let manager = get_global_manager().await.clone();
 
     match manager.get_coin_with_token(query.token).await {
+        Ok(coin) => CustomResponse::ok(coin).to_json(),
+        Err(e) => CustomResponse::err(e.to_string()).to_json(),
+    }
+}
+
+#[derive(Serialize, Deserialize, Default)]
+struct CheckResult {
+    ming: String,
+    is_suspicious: bool,
+    msg: String,
+}
+
+async fn check_coin(Query(query): Query<TokenQuery>) -> impl IntoResponse {
+    let manager = get_global_manager().await.clone();
+
+    match manager.get_coin_with_token(query.token.clone()).await {
         Ok(coin) => {
-            if coin.is_none() && query.use_gmgn_check {
+            if coin.is_none() {
                 // use ws to check
                 let url = url::Url::parse(
                     format!("ws://{}/ws", get_global_config().await.host_uri).as_str(),
                 )
                 .unwrap();
 
+                let mint = query.token.clone();
                 match connect_async(url.as_str()).await {
                     Ok((ws_stream, _)) => {
-                        let (mut ws_sender, ws_receiver) = ws_stream.split();
+                        let (mut ws_sender, mut ws_receiver) = ws_stream.split();
                         let msg = serde_json::json!({
-                            "mint": query.token,
+                            "mint": mint,
                         })
                         .to_string();
 
@@ -138,7 +155,12 @@ async fn get_coin(Query(query): Query<TokenQuery>) -> impl IntoResponse {
                             .await
                             .is_err()
                         {
-                            return CustomResponse::ok(coin).to_json();
+                            let cr = CheckResult {
+                                ming: query.token.clone(),
+                                is_suspicious: false,
+                                msg: "send message to websocket err".to_string(),
+                            };
+                            return CustomResponse::ok(Some(cr)).to_json();
                         }
 
                         while let Some(Ok(msg)) = ws_receiver.next().await {
@@ -146,12 +168,17 @@ async fn get_coin(Query(query): Query<TokenQuery>) -> impl IntoResponse {
                                 let signal: Result<SignalMessage, _> = serde_json::from_str(&text);
                                 match signal {
                                     Ok(signal) => {
-                                        if signal.mint == query.token && signal.is_suspicious {
+                                        if signal.mint == mint && signal.is_suspicious {
                                             warn!(
                                                 "check gmgn success, msg: {}, ming: {}",
                                                 signal.msg, signal.mint
                                             );
-                                            return CustomResponse::ok(Some(query.token)).to_json();
+                                            let cr = CheckResult {
+                                                ming: signal.mint,
+                                                is_suspicious: true,
+                                                msg: signal.msg,
+                                            };
+                                            return CustomResponse::ok(Some(cr)).to_json();
                                         }
                                     }
                                     Err(e) => {
@@ -167,7 +194,12 @@ async fn get_coin(Query(query): Query<TokenQuery>) -> impl IntoResponse {
                 }
             }
 
-            return CustomResponse::ok(coin).to_json();
+            let cr = CheckResult {
+                ming: query.token.clone(),
+                is_suspicious: true,
+                msg: "check in self db".to_string(),
+            };
+            return CustomResponse::ok(Some(cr)).to_json();
         }
         Err(e) => CustomResponse::err(e.to_string()).to_json(),
     }
