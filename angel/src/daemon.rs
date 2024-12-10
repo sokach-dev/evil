@@ -18,7 +18,9 @@ pub async fn daemon() {
         match manager.get_all_accounts().await {
             Ok(accounts) => {
                 for account in accounts {
-                    match get_tokens_with_account(&account.account, &c.solana_rpc_url).await {
+                    match get_tokens_with_account(&account.account, &c.get_random_solana_rpc_url())
+                        .await
+                    {
                         Ok(tokens) => {
                             if tokens.len() > 0 {
                                 // del old coins

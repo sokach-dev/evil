@@ -5,9 +5,11 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.94"
-axum = "0.7.9"
+axum = { version = "0.7.9", features = ["ws"] }
 chrono = "0.4.38"
 clap = { version = "4.5.22", features = ["derive"] }
+futures = "0.3.31"
+rand = "0.8.5"
 reqwest = { version = "0.12.9", features = ["json", "blocking"] }
 serde = { version = "1.0.215", features = ["derive"] }
 serde_json = "1.0.133"
@@ -15,11 +17,17 @@ solana-account-decoder = "2.1.4"
 solana-client = "2.1.4"
 solana-sdk = "2.1.4"
 spl-token = { version = "7.0.0", features = ["no-entrypoint"] }
-sqlx = { version = "0.8.2", features = ["runtime-tokio", "sqlite", "tls-native-tls"] }
+sqlx = { version = "0.8.2", features = [
+    "runtime-tokio",
+    "sqlite",
+    "tls-native-tls",
+] }
 tokio = { version = "1.42.0", features = ["full"] }
+tokio-tungstenite = "0.24.0"
 toml = "0.8.19"
 tower = { version = "0.5.1", features = ["util", "timeout"] }
 tower-http = { version = "0.6.2", features = ["add-extension", "trace"] }
 tracing = "0.1.41"
 utils = { version = "0.1.0", path = "../utils" }
 validator = { version = "0.19.0", features = ["derive"] }
+url = "2.5.4"

@@ -1,4 +1,6 @@
 database_url="sqlite://./data/db.sqlite3"
 host_uri="127.0.0.1:2211" # web server port
-solana_rpc_url="https://api.mainnet-beta.solana.com"
+solana_rpc_url="https://api.mainnet-beta.solana.com"   # ,分隔
 solana_rpc_curl_interval=10
+use_gmgn_ws_check=false    # 使用gmgn来进行检测的开关
+gmgn_ws_url="ws://gmgn-ws.gmgn.me"   # 起websocket进行通信
