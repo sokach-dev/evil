@@ -62,7 +62,7 @@ url "http://127.0.0.1:2211/api/v1/check_token_largest_accounts?token=9FABQYprYoa
 ```toml
 database_url="sqlite://./data/db.sqlite3"
 host_uri="127.0.0.1:2211" # 本地web服务的地址
-solana_rpc_url="https://api.mainnet-beta.solana.com" # solana rpc地址, 最好替换为自己的如 helius.dev
+solana_rpc_url="https://api.mainnet-beta.solana.com" # solana rpc地址逗号分割, 最好替换为自己的如 helius.dev
 solana_rpc_curl_interval=10 # 同步关注账户的持仓信息的时间间隔, 单位秒
 check_largest_account_hold_coin=100000000.0 # 检查是否有人占比过大的阈值,这里1亿表示如果除了池子有人持币超过1亿就会被标记为可疑
 ```
