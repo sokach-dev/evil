@@ -45,10 +45,13 @@ curl "http://127.0.0.1:2211/api/v1/get_coin?token=APAkdwfAyqFsQuD92hURMnfUE2dKkj
 ```bash
 # 有人占比过大，这里的占比在配置文件里的check_largest_account_hold_coin配置
 curl "http://127.0.0.1:2211/api/v1/check_token_largest_accounts?token=4XVHtuLTu35F9vV5JZBNUQGaAZe7KuK8ZQffVssvpump"
-{"msg":"ok","data":{"is_suspicion":true}
+{"msg":"ok","data":{"is_suspicion":true} # 表示有人占比过大
 
 curl "http://127.0.0.1:2211/api/v1/check_token_largest_accounts?token=9FABQYprYoaBDjhaqHcQzyMnWzBSYPS3RPLYiTG2pump" 
-{"msg":"ok","data":{"is_suspicion":false}
+{"msg":"ok","data":{"is_suspicion":false} # 表示没有人占比过大
+```
+
+```bash
 
 # 当你传了一个不存在的token时
 url "http://127.0.0.1:2211/api/v1/check_token_largest_accounts?token=9FABQYprYoaBDjhaqHcQzyMnWzBSYPS3RPLYiTG2pum"
