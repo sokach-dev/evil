@@ -49,9 +49,6 @@ curl "http://127.0.0.1:2211/api/v1/check_token_largest_accounts?token=4XVHtuLTu3
 
 curl "http://127.0.0.1:2211/api/v1/check_token_largest_accounts?token=9FABQYprYoaBDjhaqHcQzyMnWzBSYPS3RPLYiTG2pump" 
 {"msg":"ok","data":{"is_suspicion":false} # 表示没有人占比过大
-```
-
-```bash
 
 # 当你传了一个不存在的token时
 url "http://127.0.0.1:2211/api/v1/check_token_largest_accounts?token=9FABQYprYoaBDjhaqHcQzyMnWzBSYPS3RPLYiTG2pum"
