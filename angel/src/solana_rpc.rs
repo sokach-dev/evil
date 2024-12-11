@@ -1,7 +1,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use solana_account_decoder::UiAccountData;
-use solana_client::rpc_client::RpcClient;
+use solana_client::{rpc_client::RpcClient, rpc_response::RpcTokenAccountBalance};
 use solana_sdk::pubkey::Pubkey;
 use tracing::debug;
 
@@ -73,4 +73,15 @@ pub async fn get_tokens_with_account(account: &str, rpc_url: &str) -> Result<Vec
         }
     }
     Ok(accounts)
+}
+
+pub async fn get_token_largest_accounts(
+    token: &str,
+    rpc_url: &str,
+) -> Result<Vec<RpcTokenAccountBalance>> {
+    let client = RpcClient::new(rpc_url);
+
+    let token_pubkey = Pubkey::from_str_const(token);
+    let token_accounts = client.get_token_largest_accounts(&token_pubkey)?;
+    Ok(token_accounts)
 }

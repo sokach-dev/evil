@@ -1,4 +1,6 @@
-use crate::{config::get_global_config, models::get_global_manager};
+use crate::{
+    config::get_global_config, models::get_global_manager, solana_rpc::get_token_largest_accounts,
+};
 use anyhow::Result;
 use axum::{
     error_handling::HandleErrorLayer,
@@ -13,7 +15,7 @@ use std::time::Duration;
 use tokio::{net::TcpListener, signal};
 use tower::{BoxError, ServiceBuilder};
 use tower_http::trace::TraceLayer;
-use tracing::info;
+use tracing::{info, warn};
 
 #[derive(Debug, Clone, Serialize)]
 struct CustomResponse<T> {
@@ -47,6 +49,10 @@ pub async fn start_server() -> Result<()> {
         .route("/api/v1/get_coin", get(get_coin))
         .route("/api/v1/get_account", get(get_account))
         .route("/api/v1/get_accounts", get(get_accounts))
+        .route(
+            "/api/v1/check_token_largest_accounts",
+            get(check_token_largest_accounts),
+        )
         .layer(
             ServiceBuilder::new()
                 .layer(HandleErrorLayer::new(|error: BoxError| async move {
@@ -70,6 +76,7 @@ pub async fn start_server() -> Result<()> {
     info!("get coin: /api/v1/get_coin?token=xxx");
     info!("get account: /api/v1/get_account?address=xxx");
     info!("get accounts: /api/v1/get_accounts");
+    info!("check token largest accounts: /api/v1/check_token_largest_accounts?token=xxx");
     axum::serve(addr, app)
         .with_graceful_shutdown(shoutdown_signal())
         .await
@@ -79,22 +86,22 @@ pub async fn start_server() -> Result<()> {
 }
 
 #[derive(Deserialize)]
-struct AddAccount {
+struct AccountAddress {
     address: String,
 }
 
-async fn add_account(input: Query<AddAccount>) -> impl IntoResponse {
+#[derive(Deserialize)]
+struct TokenQuery {
+    token: String,
+}
+
+async fn add_account(input: Query<AccountAddress>) -> impl IntoResponse {
     let manager = get_global_manager().await;
     if let Err(e) = manager.add_new_account(input.address.clone()).await {
         return CustomResponse::err(e.to_string()).to_json();
     }
 
     CustomResponse::<i32>::ok(None).to_json()
-}
-
-#[derive(Deserialize)]
-struct TokenQuery {
-    token: String,
 }
 
 async fn get_coin(Query(query): Query<TokenQuery>) -> impl IntoResponse {
@@ -106,12 +113,7 @@ async fn get_coin(Query(query): Query<TokenQuery>) -> impl IntoResponse {
     }
 }
 
-#[derive(Deserialize)]
-struct AddressQuery {
-    address: String,
-}
-
-async fn get_account(Query(query): Query<AddressQuery>) -> impl IntoResponse {
+async fn get_account(Query(query): Query<AccountAddress>) -> impl IntoResponse {
     let manager = get_global_manager().await.clone();
 
     match manager.get_account_with_mint(query.address).await {
@@ -125,6 +127,55 @@ async fn get_accounts() -> impl IntoResponse {
     match manager.get_all_accounts().await {
         Ok(accounts) => CustomResponse::ok(Some(accounts)).to_json(),
         Err(e) => CustomResponse::err(e.to_string()).to_json(),
+    }
+}
+
+#[derive(Serialize)]
+struct CheckLargestAccountsResponse {
+    is_suspicion: bool,
+}
+
+async fn check_token_largest_accounts(Query(query): Query<TokenQuery>) -> impl IntoResponse {
+    let c = get_global_config().await;
+    let check_amount = c.check_largest_account_hold_coin;
+    let mut count = 0;
+    match get_token_largest_accounts(&query.token, &c.get_random_solana_rpc_url()).await {
+        Ok(accounts) => {
+            for account in accounts {
+                match account.amount.ui_amount_string.parse::<f64>() {
+                    Ok(amount) => {
+                        if amount > check_amount {
+                            count += 1;
+                        }
+                    }
+                    Err(e) => {
+                        warn!(
+                            "check_token_largest_accounts parse amount error: {:?}, token: {}",
+                            e, query.token
+                        );
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            warn!(
+                "check_token_largest_accounts error: {:?}, token: {}",
+                e, query.token
+            );
+            return CustomResponse::err(format!(
+                "get token largest accounts err: {}",
+                e.to_string()
+            ))
+            .to_json();
+        }
+    }
+    if count > 1 {
+        CustomResponse::ok(Some(CheckLargestAccountsResponse { is_suspicion: true })).to_json()
+    } else {
+        CustomResponse::ok(Some(CheckLargestAccountsResponse {
+            is_suspicion: false,
+        }))
+        .to_json()
     }
 }
 
