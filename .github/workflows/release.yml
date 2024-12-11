@@ -19,17 +19,6 @@ jobs:
             bin: angel
             name: angel-linux-amd64
 
-          - release_for: macOS-x86_64
-            os: macos-latest
-            target: x86_64-apple-darwin
-            bin: angel
-            name: angel-macos-amd64
-
-          - release_for: macOS-aarch64
-            os: macos-latest
-            target: aarch64-apple-darwin
-            bin: angel
-            name: angel-macos-arm64
 
     steps:
       - uses: actions/checkout@v4
