@@ -15,7 +15,7 @@ use std::time::Duration;
 use tokio::{net::TcpListener, signal};
 use tower::{BoxError, ServiceBuilder};
 use tower_http::trace::TraceLayer;
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
 
 #[derive(Debug, Clone, Serialize)]
 struct CustomResponse<T> {
@@ -139,12 +139,17 @@ async fn check_token_largest_accounts(Query(query): Query<TokenQuery>) -> impl I
     let c = get_global_config().await;
     let check_amount = c.check_largest_account_hold_coin;
     let mut count = 0;
+    debug!("check_token_largest_accounts: token: {}", query.token);
     match get_token_largest_accounts(&query.token, &c.get_random_solana_rpc_url()).await {
         Ok(accounts) => {
             for account in accounts {
                 match account.amount.ui_amount_string.parse::<f64>() {
                     Ok(amount) => {
                         if amount > check_amount {
+                            debug!(
+                                "check_token_largest_accounts: token: {}, amount: {}",
+                                query.token, amount
+                            );
                             count += 1;
                         }
                     }
