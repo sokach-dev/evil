@@ -143,14 +143,18 @@ async fn check_token_largest_accounts(Query(query): Query<TokenQuery>) -> impl I
     match get_token_largest_accounts(&query.token, &c.get_random_solana_rpc_url()).await {
         Ok(accounts) => {
             for account in accounts {
+                debug!(
+                    "check_token_largest_accounts: token: {}, amount: {}",
+                    query.token, account.amount.ui_amount_string
+                );
                 match account.amount.ui_amount_string.parse::<f64>() {
                     Ok(amount) => {
                         if amount > check_amount {
-                            debug!(
-                                "check_token_largest_accounts: token: {}, amount: {}",
-                                query.token, amount
-                            );
                             count += 1;
+                            info!(
+                                "check_token_largest_accounts: token: {}, amount: {}, count: {}",
+                                query.token, amount, count
+                            );
                         }
                     }
                     Err(e) => {
