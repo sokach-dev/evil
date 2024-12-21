@@ -39,7 +39,13 @@ jobs:
           export DATABASE_URL=sqlite:./db.sqlite
           sqlx database create
           sqlx migrate run
-          cargo build --release --bin angel --target ${{ matrix.platform.target }}
+          if [ "${{ matrix.platform.target }}" = "aarch64-unknown-linux-gnu" ]; then
+            rustup toolchain isntall stable-aarch64-unknown-linux-gnu 
+            rustup default stable-aarch64-unknown-linux-gnu 
+            cargo build --release --bin angel --target ${{ matrix.platform.target }}
+          else
+            cargo build --release --bin angel --target ${{ matrix.platform.target }}
+          fi
 
       - name: Prepare assets
         shell: bash
