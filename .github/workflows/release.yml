@@ -20,7 +20,7 @@ jobs:
             name: angel-linux-amd64
             
           - release_for: Linux-aarch64
-            os: ubuntu-latest-arm64    # 改这里，直接使用 ARM64 的运行环境
+            os: ubuntu-latest    # 改这里，直接使用 ARM64 的运行环境
             target: aarch64-unknown-linux-gnu
             bin: angel
             name: angel-linux-arm64
