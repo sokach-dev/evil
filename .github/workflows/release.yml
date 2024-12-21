@@ -33,6 +33,10 @@ jobs:
         with:
           targets: ${{ matrix.platform.target }}
 
+      - name: Install cross
+        if: matrix.platform.target == 'aarch64-unknown-linux-gnu'
+        run: cargo install cross
+
       - name: Build
         run: |
           cargo install sqlx-cli --no-default-features --features sqlite
@@ -40,9 +44,7 @@ jobs:
           sqlx database create
           sqlx migrate run
           if [ "${{ matrix.platform.target }}" = "aarch64-unknown-linux-gnu" ]; then
-            rustup toolchain install stable-aarch64-unknown-linux-gnu 
-            rustup default stable-aarch64-unknown-linux-gnu 
-            cargo build --release --bin angel --target ${{ matrix.platform.target }}
+            cross build --release --bin angel --target ${{ matrix.platform.target }}
           else
             cargo build --release --bin angel --target ${{ matrix.platform.target }}
           fi
