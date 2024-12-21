@@ -39,6 +39,7 @@ jobs:
 
       - name: Build
         run: |
+          sudo apt install libssl-dev
           cargo install sqlx-cli --no-default-features --features sqlite
           export DATABASE_URL=sqlite:./db.sqlite
           sqlx database create
