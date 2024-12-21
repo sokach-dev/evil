@@ -18,6 +18,11 @@ jobs:
             target: x86_64-unknown-linux-gnu
             bin: angel
             name: angel-linux-amd64
+          - release_for: Linux-aarch64
+            os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            bin: angel
+            name: angel-linux-arm64
 
 
     steps:
